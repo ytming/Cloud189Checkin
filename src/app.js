@@ -76,8 +76,10 @@ async function main() {
     { cloudClient, userSizeInfo, logger },
   ] of userSizeInfoMap) {
     const afterUserSizeInfo = await cloudClient.getUserSizeInfo();
+
+    // 个人容量一行
     logger.log(
-      `个人容量：⬆️  ${(
+      `个人容量：${(
         (afterUserSizeInfo.cloudCapacityInfo.totalSize -
           userSizeInfo.cloudCapacityInfo.totalSize) /
         1024 /
@@ -87,8 +89,12 @@ async function main() {
         1024 /
         1024 /
         1024
-      ).toFixed(2)}G`,
-      `家庭容量：⬆️  ${(
+      ).toFixed(2)}G`
+    );
+
+    // 家庭容量另起一行
+    logger.log(
+      `家庭容量：${(
         (afterUserSizeInfo.familyCapacityInfo.totalSize -
           userSizeInfo.familyCapacityInfo.totalSize) /
         1024 /
@@ -112,7 +118,17 @@ async function main() {
     const logs = catLogs();
     const events = recording.replay();
     const content = events.map((e) => `${e.data.join("")}`).join("  \n");
-    push("天翼云盘自动签到任务", logs + content);
+
+    // 从日志里提取个人容量增加的数值
+    const capacityMatch = logs.match(/个人容量：([\d.]+)M/);
+    const addCapacity = capacityMatch ? capacityMatch[1] : '0';
+
+    // 标题显示容量
+    const title = `天翼云盘签到成功 +${addCapacity}M`;
+    const message = logs + content;
+
+    push(title, message);
+
     recording.erase();
     cleanLogs();
   }
